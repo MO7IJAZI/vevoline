@@ -9,3 +9,5 @@ vite.config.ts.*
 attached_assets/
 uploads/
 .local/
+startup_debug.txt
+hostinger output logs.log

@@ -182,10 +182,20 @@ app.use((req, res, next) => {
     }
 
     const PORT = Number(process.env.PORT) || 5000;
-    
-    httpServer.listen(PORT, "0.0.0.0", () => {
-      fileLog(`serving on port ${PORT}`);
-    });
+    const isPassenger = Boolean(
+      process.env.PASSENGER_APP_ENV ||
+      process.env.PASSENGER_APP_TYPE ||
+      process.env.PASSENGER_BASE_URI ||
+      process.env.PASSENGER_ENV
+    );
+
+    if (isPassenger) {
+      fileLog("Passenger detected: skipping httpServer.listen(), Passenger will handle the socket");
+    } else {
+      httpServer.listen(PORT, "0.0.0.0", () => {
+        fileLog(`serving on port ${PORT}`);
+      });
+    }
   } catch (err: any) {
     fileLog(`CRITICAL ERROR DURING STARTUP: ${err?.message || err}`);
     process.exit(1);
