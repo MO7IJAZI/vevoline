@@ -15,9 +15,13 @@
     "db:migrate": "node node_modules/tsx/dist/cli.mjs server/migrate.ts",
     "db:seed": "node node_modules/tsx/dist/cli.mjs server/seed.ts",
     "db:reset": "node node_modules/tsx/dist/cli.mjs server/reset_db.ts",
-    "db:push": "echo '⚠️  Use npm run db:migrate instead of db:push for consistent migrations' && npm run db:migrate"
+    "db:push": "echo '⚠️  Use npm run db:migrate instead of db:push for consistent migrations' && npm run db:migrate",
+    "migrate:pg2mysql": "node node_modules/tsx/dist/cli.mjs server/migrate_pg_to_mysql.ts",
+    "db:seed:mysql": "cross-env DB_DIALECT=mysql SESSION_STORE=mysql node node_modules/tsx/dist/cli.mjs server/seed.ts"
   },
   "dependencies": {
+    "express-mysql-session": "^3.0.2",
+    "mysql2": "^3.11.3",
     "@google-cloud/storage": "^7.18.0",
     "@hookform/resolvers": "^3.10.0",
     "@jridgewell/trace-mapping": "^0.3.25",

@@ -56,8 +56,9 @@ const departmentLabels: Record<string, { ar: string; en: string }> = {
 };
 
 // Get month options for filter
-function getMonthOptions(language: string) {
-  const months = [];
+type MonthOption = { value: string; label: string };
+function getMonthOptions(language: string): MonthOption[] {
+  const months: MonthOption[] = [];
   const now = new Date();
   for (let i = 0; i < 12; i++) {
     const date = new Date(now.getFullYear(), now.getMonth() - i, 1);

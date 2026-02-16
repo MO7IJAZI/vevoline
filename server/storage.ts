@@ -244,7 +244,7 @@ export class DatabaseStorage implements IStorage {
 
   async getTransactions(filters: TransactionFilters): Promise<Transaction[]> {
     try {
-      let conditions = [];
+      let conditions: any[] = [];
 
       if (filters.type) {
         conditions.push(eq(transactions.type, filters.type));
@@ -300,7 +300,7 @@ export class DatabaseStorage implements IStorage {
 
   async getClientPayments(filters: PaymentFilters): Promise<ClientPayment[]> {
     try {
-      let conditions = [];
+      let conditions: any[] = [];
 
       if (filters.clientId) {
         conditions.push(eq(clientPayments.clientId, filters.clientId));
@@ -384,7 +384,7 @@ export class DatabaseStorage implements IStorage {
 
   async getPayrollPayments(filters: PaymentFilters): Promise<PayrollPayment[]> {
     try {
-      let conditions = [];
+      let conditions: any[] = [];
 
       if (filters.employeeId) {
         conditions.push(eq(payrollPayments.employeeId, filters.employeeId));
@@ -613,7 +613,7 @@ export class DatabaseStorage implements IStorage {
 
   async getCalendarEvents(filters: CalendarEventFilters): Promise<CalendarEvent[]> {
     try {
-      let conditions = [];
+      let conditions: any[] = [];
 
       if (filters.startDate) {
         conditions.push(sql`${calendarEvents.date} >= ${filters.startDate}`);
@@ -786,7 +786,7 @@ export class DatabaseStorage implements IStorage {
 
   async getWorkSessions(filters: WorkSessionFilters): Promise<WorkSession[]> {
     try {
-      let conditions = [];
+      let conditions: any[] = [];
 
       if (filters.employeeId) {
         conditions.push(eq(workSessions.employeeId, filters.employeeId));

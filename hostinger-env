@@ -6,12 +6,14 @@
 # الصيغة: postgresql://USER:PASSWORD@HOST:PORT/DBNAME
 # مثال Neon: postgresql://<user>:<password>@<project>.neon.tech/<db>?sslmode=require
 ; DATABASE_URL="postgresql://neondb_owner:npg_1vEc2qARzaeF@ep-tiny-dream-aihq9oyy-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require"
-PGHOST='ep-tiny-dream-aihq9oyy-pooler.c-4.us-east-1.aws.neon.tech'
-PGDATABASE='neondb'
-PGUSER='neondb_owner'
-PGPASSWORD='npg_1vEc2qARzaeF'
-PGSSLMODE='require'
-PGCHANNELBINDING='require'
+DB_DIALECT=mysql
+SESSION_STORE=mysql
+MYSQL_HOST=127.0.0.1
+MYSQL_PORT=3306
+MYSQL_USER=u884871213_vevo
+MYSQL_PASSWORD=VevoVevo1213
+MYSQL_DATABASE=u884871213_vevo
+SESSION_SECRET=asdqwezxc
 
 # 2. إعدادات الجلسة والأمان
 # قم بتغيير SESSION_SECRET إلى كلمة سر طويلة وعشوائية جداً

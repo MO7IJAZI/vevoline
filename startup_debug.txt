@@ -93,3 +93,126 @@
 2026-02-15T22:40:23.055Z - Setting up static file serving (Production Mode)
 2026-02-15T22:40:23.057Z - Static files setup complete
 2026-02-15T22:40:23.060Z - serving on port 3000
+2026-02-16T01:01:54.286Z - --- SERVER STARTUP SEQUENCE START ---
+2026-02-16T01:01:54.290Z - Express and HTTP server initialized
+2026-02-16T01:01:54.293Z - Environment: development
+2026-02-16T01:01:54.294Z - Starting initialization sequence...
+2026-02-16T01:01:54.294Z - Testing database connection...
+2026-02-16T01:01:54.324Z - DATABASE CONNECTION FAILED: Access denied for user 'u884871213_vevo'@'localhost' (using password: YES)
+2026-02-16T01:01:54.446Z - Session store configured: MySQL
+2026-02-16T01:01:54.454Z - Failed ensuring MySQL tables: Access denied for user 'u884871213_vevo'@'localhost' (using password: YES)
+2026-02-16T01:01:54.458Z - Seeding admin user...
+2026-02-16T01:01:54.460Z - Admin user seeding checked
+2026-02-16T01:01:54.460Z - Registering routes...
+2026-02-16T01:01:54.464Z - Routes registered
+2026-02-16T01:01:54.465Z - Setting up Vite development server (Development Mode)
+2026-02-16T01:01:56.360Z - Vite setup complete
+2026-02-16T01:01:56.363Z - serving on port 3000
+2026-02-16T01:03:56.820Z - --- SERVER STARTUP SEQUENCE START ---
+2026-02-16T01:03:56.824Z - Express and HTTP server initialized
+2026-02-16T01:03:56.827Z - Environment: development
+2026-02-16T01:03:56.827Z - Starting initialization sequence...
+2026-02-16T01:03:56.828Z - Testing database connection...
+2026-02-16T01:03:56.854Z - MySQL connection successful
+2026-02-16T01:03:56.952Z - Session store configured: MySQL
+2026-02-16T01:03:57.005Z - Ensured MySQL auth tables exist
+2026-02-16T01:03:57.009Z - Seeding admin user...
+2026-02-16T01:03:57.010Z - Admin user seeding checked
+2026-02-16T01:03:57.010Z - Registering routes...
+2026-02-16T01:03:57.013Z - Routes registered
+2026-02-16T01:03:57.013Z - Setting up Vite development server (Development Mode)
+2026-02-16T01:03:58.015Z - Vite setup complete
+2026-02-16T01:03:58.019Z - serving on port 3000
+2026-02-16T01:06:41.354Z - --- SERVER STARTUP SEQUENCE START ---
+2026-02-16T01:06:41.358Z - Express and HTTP server initialized
+2026-02-16T01:06:41.361Z - Environment: development
+2026-02-16T01:06:41.361Z - Starting initialization sequence...
+2026-02-16T01:06:41.362Z - Testing database connection...
+2026-02-16T01:06:41.391Z - MySQL connection successful
+2026-02-16T01:06:41.507Z - Session store configured: MySQL
+2026-02-16T01:06:41.543Z - Failed ensuring MySQL tables: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'NOT NULL,
+            label_ar text NOT NULL,
+            label_en text NOT N...' at line 4
+2026-02-16T01:06:41.547Z - Seeding admin user...
+2026-02-16T01:06:41.548Z - Admin user seeding checked
+2026-02-16T01:06:41.548Z - Registering routes...
+2026-02-16T01:06:41.552Z - Routes registered
+2026-02-16T01:06:41.553Z - Setting up Vite development server (Development Mode)
+2026-02-16T01:06:42.731Z - Vite setup complete
+2026-02-16T01:06:42.735Z - serving on port 3000
+2026-02-16T01:07:13.368Z - --- SERVER STARTUP SEQUENCE START ---
+2026-02-16T01:07:13.372Z - Express and HTTP server initialized
+2026-02-16T01:07:13.374Z - Environment: development
+2026-02-16T01:07:13.375Z - Starting initialization sequence...
+2026-02-16T01:07:13.376Z - Testing database connection...
+2026-02-16T01:07:13.405Z - MySQL connection successful
+2026-02-16T01:07:13.524Z - Session store configured: MySQL
+2026-02-16T01:07:13.585Z - Ensured MySQL tables exist
+2026-02-16T01:07:13.589Z - Seeding admin user...
+2026-02-16T01:07:13.590Z - Admin user seeding checked
+2026-02-16T01:07:13.591Z - Registering routes...
+2026-02-16T01:07:13.595Z - Routes registered
+2026-02-16T01:07:13.596Z - Setting up Vite development server (Development Mode)
+2026-02-16T01:07:14.677Z - Vite setup complete
+2026-02-16T01:07:14.682Z - serving on port 3000
+2026-02-16T01:12:01.501Z - --- SERVER STARTUP SEQUENCE START ---
+2026-02-16T01:12:01.505Z - Express and HTTP server initialized
+2026-02-16T01:12:01.508Z - Environment: development
+2026-02-16T01:12:01.508Z - Starting initialization sequence...
+2026-02-16T01:12:01.509Z - Testing database connection...
+2026-02-16T01:12:01.537Z - MySQL connection successful
+2026-02-16T01:12:01.654Z - Session store configured: MySQL
+2026-02-16T01:12:01.733Z - Failed ensuring MySQL tables: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'read boolean NOT NULL DEFAULT FALSE,
+            related_id text NULL,
+      ...' at line 9
+2026-02-16T01:12:01.737Z - Seeding admin user...
+2026-02-16T01:12:01.738Z - Admin user seeding checked
+2026-02-16T01:12:01.738Z - Registering routes...
+2026-02-16T01:12:01.741Z - Routes registered
+2026-02-16T01:12:01.742Z - Setting up Vite development server (Development Mode)
+2026-02-16T01:12:02.881Z - Vite setup complete
+2026-02-16T01:12:02.884Z - serving on port 3000
+2026-02-16T01:12:31.263Z - --- SERVER STARTUP SEQUENCE START ---
+2026-02-16T01:12:31.267Z - Express and HTTP server initialized
+2026-02-16T01:12:31.270Z - Environment: development
+2026-02-16T01:12:31.270Z - Starting initialization sequence...
+2026-02-16T01:12:31.271Z - Testing database connection...
+2026-02-16T01:12:31.299Z - MySQL connection successful
+2026-02-16T01:12:31.422Z - Session store configured: MySQL
+2026-02-16T01:12:31.504Z - Ensured MySQL tables exist
+2026-02-16T01:12:31.507Z - Seeding admin user...
+2026-02-16T01:12:31.508Z - Admin user seeding checked
+2026-02-16T01:12:31.509Z - Registering routes...
+2026-02-16T01:12:31.514Z - Routes registered
+2026-02-16T01:12:31.514Z - Setting up Vite development server (Development Mode)
+2026-02-16T01:12:32.650Z - Vite setup complete
+2026-02-16T01:12:32.653Z - serving on port 3000
+2026-02-16T01:22:18.705Z - --- SERVER STARTUP SEQUENCE START ---
+2026-02-16T01:22:18.710Z - Express and HTTP server initialized
+2026-02-16T01:22:18.712Z - Environment: development
+2026-02-16T01:22:18.712Z - Starting initialization sequence...
+2026-02-16T01:22:18.713Z - Testing database connection...
+2026-02-16T01:22:18.739Z - MySQL connection successful
+2026-02-16T01:22:18.840Z - Session store configured: MySQL
+2026-02-16T01:22:18.875Z - Ensured MySQL tables exist
+2026-02-16T01:22:18.878Z - Seeding admin user...
+2026-02-16T01:22:19.302Z - Admin user seeding checked
+2026-02-16T01:22:19.303Z - Registering routes...
+2026-02-16T01:22:19.306Z - Routes registered
+2026-02-16T01:22:19.306Z - Setting up Vite development server (Development Mode)
+2026-02-16T01:22:20.400Z - Vite setup complete
+2026-02-16T01:22:56.702Z - --- SERVER STARTUP SEQUENCE START ---
+2026-02-16T01:22:56.706Z - Express and HTTP server initialized
+2026-02-16T01:22:56.708Z - Environment: development
+2026-02-16T01:22:56.709Z - Starting initialization sequence...
+2026-02-16T01:22:56.709Z - Testing database connection...
+2026-02-16T01:22:56.735Z - MySQL connection successful
+2026-02-16T01:22:56.836Z - Session store configured: MySQL
+2026-02-16T01:22:56.871Z - Ensured MySQL tables exist
+2026-02-16T01:22:56.875Z - Seeding admin user...
+2026-02-16T01:22:57.300Z - Admin user seeding checked
+2026-02-16T01:22:57.301Z - Registering routes...
+2026-02-16T01:22:57.304Z - Routes registered
+2026-02-16T01:22:57.304Z - Setting up Vite development server (Development Mode)
+2026-02-16T01:22:58.382Z - Vite setup complete
+2026-02-16T01:22:58.385Z - serving on port 3000

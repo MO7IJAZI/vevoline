@@ -801,18 +801,20 @@ async function seed() {
 
   // 3. Seed Admin User
   try {
-    const existingAdmin = await db.select().from(users).where(eq(users.email, "admin@vevoline.com"));
+    const adminEmail = process.env.ADMIN_EMAIL || "admin@vevoline.com";
+    const adminPasswordPlain = process.env.ADMIN_PASSWORD || "Admin@123";
+    const existingAdmin = await db.select().from(users).where(eq(users.email, adminEmail));
     if (existingAdmin.length === 0) {
-      const password = await hashPassword("Admin@123");
+      const password = await hashPassword(adminPasswordPlain);
       await db.insert(users).values({
-        email: "admin@vevoline.com",
+        email: adminEmail,
         password,
         name: "Admin User",
         role: "admin",
         permissions: roleDefaultPermissions.admin,
         isActive: true,
       });
-      console.log("Admin user seeded.");
+      console.log(`Admin user seeded for ${adminEmail}.`);
     } else {
       console.log("Admin user already exists.");
     }
