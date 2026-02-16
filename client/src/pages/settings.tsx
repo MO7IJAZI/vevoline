@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   Settings,
@@ -99,12 +100,16 @@ interface WorkSession {
 }
 
 export default function SettingsPage() {
+  const [, setLocation] = useLocation();
   const { language, setLanguage } = useLanguage();
   const { theme, setTheme } = useTheme();
   const { currency, setCurrency } = useCurrency();
-  const { employees } = useData();
+  const { employees, clients, invoices, goals } = useData() as any;
   const { toast } = useToast();
   const [openSections, setOpenSections] = useState<string[]>(["general"]);
+  const [isExporting, setIsExporting] = useState(false);
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
 
   // Settings state
   const [settings, setSettings] = useState({
@@ -159,7 +164,7 @@ export default function SettingsPage() {
   });
 
   // Fetch work sessions for time tracking audit
-  const { data: workSessions, isLoading: sessionsLoading } = useQuery<WorkSession[]>({
+  const { data: workSessions, isLoading: sessionsLoading, refetch: refetchSessions } = useQuery<WorkSession[]>({
     queryKey: ["/api/work-sessions"],
   });
 
@@ -197,6 +202,91 @@ export default function SettingsPage() {
 
   const handleSave = () => {
     saveSettingsMutation.mutate(settings);
+  };
+
+  const downloadCsv = (filename: string, rows: string[][]) => {
+    const csvContent = rows.map(r => r.map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportGoals = async () => {
+    try {
+      setIsExporting(true);
+      const rows: string[][] = [
+        ["id", "name", "type", "target", "current", "month", "year", "status"]
+      ];
+      (goals || []).forEach((g: any) => {
+        rows.push([g.id, g.name, g.type, String(g.target ?? ""), String(g.current ?? ""), String(g.month ?? ""), String(g.year ?? ""), g.status ?? ""]);
+      });
+      downloadCsv("goals.csv", rows);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportClients = async () => {
+    try {
+      setIsExporting(true);
+      const rows: string[][] = [
+        ["id", "name", "email", "phone", "company", "status", "completedDate"]
+      ];
+      (clients || []).forEach((c: any) => {
+        rows.push([c.id, c.name, c.email ?? "", c.phone ?? "", c.company ?? "", c.status ?? "", c.completedDate ?? ""]);
+      });
+      downloadCsv("clients.csv", rows);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportInvoices = async () => {
+    try {
+      setIsExporting(true);
+      const rows: string[][] = [
+        ["id", "invoiceNumber", "clientName", "amount", "currency", "status", "dueDate", "paidDate"]
+      ];
+      (invoices || []).forEach((i: any) => {
+        rows.push([i.id, i.invoiceNumber ?? "", i.clientName ?? "", String(i.amount ?? ""), i.currency ?? "", i.status ?? "", i.dueDate ?? "", i.paidDate ?? ""]);
+      });
+      downloadCsv("invoices.csv", rows);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleResetDemo = async () => {
+    try {
+      const res = await apiRequest("POST", "/api/reset-demo-data", {});
+      if (res.ok) {
+        toast({ title: language === "ar" ? "تمت العملية" : "Done", description: language === "ar" ? "تم تنفيذ إعادة التعيين" : "Reset executed" });
+      } else {
+        const body = await res.json().catch(() => ({}));
+        toast({ variant: "destructive", title: language === "ar" ? "مرفوض" : "Forbidden", description: body.error || "Reset disabled" });
+      }
+    } catch (e: any) {
+      toast({ variant: "destructive", title: language === "ar" ? "خطأ" : "Error", description: e.message || "Failed to reset" });
+    }
+  };
+
+  const handleUploadLogo = async (file: File) => {
+    setLogoUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = String(reader.result);
+        setLogoDataUrl(dataUrl);
+        updateSetting("companyLogoDataUrl" as any, dataUrl as any);
+      };
+      reader.readAsDataURL(file);
+    } finally {
+      setLogoUploading(false);
+    }
   };
 
   // Sync settings when server data changes
@@ -440,9 +530,32 @@ export default function SettingsPage() {
         </div>
         <div className="space-y-2">
           <Label>{t.companyLogo}</Label>
-          <Button variant="outline" className="w-full" data-testid="button-upload-logo">
-            {t.uploadLogo}
-          </Button>
+          <div className="flex items-center gap-2">
+            <input
+              id="logo-input"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleUploadLogo(f);
+              }}
+            />
+            <Button
+              variant="outline"
+              className="w-full"
+              data-testid="button-upload-logo"
+              onClick={() => document.getElementById("logo-input")?.click()}
+              disabled={logoUploading}
+            >
+              {t.uploadLogo}
+            </Button>
+          </div>
+          {logoDataUrl || (settings as any).companyLogoDataUrl ? (
+            <div className="mt-2">
+              <img src={(logoDataUrl || (settings as any).companyLogoDataUrl) as string} alt="Logo Preview" className="h-12 object-contain border rounded" />
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -791,7 +904,17 @@ export default function SettingsPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <Label className="text-base">{t.roles}</Label>
-          <Button variant="outline" size="sm" data-testid="button-add-role">
+          <Button
+            variant="outline"
+            size="sm"
+            data-testid="button-add-role"
+            onClick={() => {
+              const name = window.prompt("Enter new role name:");
+              if (!name) return;
+              if (settings.roles.includes(name)) return;
+              updateSetting("roles", [...settings.roles, name]);
+            }}
+          >
             Add Role
           </Button>
         </div>
@@ -806,10 +929,32 @@ export default function SettingsPage() {
                 )}
               </div>
               <div className="flex gap-1">
-                <Button variant="ghost" size="icon" className="h-8 w-8" data-testid={`button-edit-role-${role}`}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  data-testid={`button-edit-role-${role}`}
+                  onClick={() => {
+                    const name = window.prompt("Rename role:", role);
+                    if (!name || name === role) return;
+                    if (settings.roles.includes(name)) return;
+                    const newRoles = settings.roles.map(r => (r === role ? name : r));
+                    const newDefault = settings.defaultRole === role ? name : settings.defaultRole;
+                    setSettings(prev => ({ ...prev, roles: newRoles, defaultRole: newDefault }));
+                  }}
+                >
                   <FileText className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" data-testid={`button-delete-role-${role}`}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-destructive"
+                  data-testid={`button-delete-role-${role}`}
+                  onClick={() => {
+                    if (role === settings.defaultRole) return;
+                    setSettings(prev => ({ ...prev, roles: prev.roles.filter(r => r !== role) }));
+                  }}
+                >
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
@@ -864,7 +1009,7 @@ export default function SettingsPage() {
             <h3 className="text-lg font-medium">Recent Work Sessions</h3>
             <p className="text-sm text-muted-foreground">Review and audit employee time tracking</p>
           </div>
-          <Button variant="outline" size="sm" className="gap-2">
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => refetchSessions()}>
             <RefreshCw className="h-4 w-4" />
             Refresh
           </Button>
@@ -890,7 +1035,7 @@ export default function SettingsPage() {
                 </TableRow>
               ) : (
                 workSessions?.slice(0, 5).map((session) => {
-                  const employee = employees.find(e => e.id === session.employeeId);
+                  const employee = employees.find((e: any) => e.id === session.employeeId);
                   const totals = JSON.parse(session.totals || "{}");
                   const totalHours = (totals.totalWorkingMs || 0) / (1000 * 60 * 60);
 
@@ -929,7 +1074,7 @@ export default function SettingsPage() {
           </Table>
         </div>
 
-        <Button variant="ghost" className="px-0 h-auto text-primary hover:bg-transparent underline">
+        <Button variant="ghost" className="px-0 h-auto text-primary hover:bg-transparent underline" onClick={() => setLocation("/work-tracking")}>
           View all work sessions in detailed report →
         </Button>
       </div>
@@ -1078,13 +1223,13 @@ export default function SettingsPage() {
       <div className="space-y-3">
         <Label>{t.exportData}</Label>
         <div className="grid gap-2 sm:grid-cols-3">
-          <Button variant="outline" className="gap-2" data-testid="button-export-goals">
+          <Button variant="outline" className="gap-2" data-testid="button-export-goals" onClick={handleExportGoals} disabled={isExporting}>
             <Download className="h-4 w-4" /> {t.exportGoals}
           </Button>
-          <Button variant="outline" className="gap-2" data-testid="button-export-clients">
+          <Button variant="outline" className="gap-2" data-testid="button-export-clients" onClick={handleExportClients} disabled={isExporting}>
             <Download className="h-4 w-4" /> {t.exportClients}
           </Button>
-          <Button variant="outline" className="gap-2" data-testid="button-export-invoices">
+          <Button variant="outline" className="gap-2" data-testid="button-export-invoices" onClick={handleExportInvoices} disabled={isExporting}>
             <Download className="h-4 w-4" /> {t.exportInvoices}
           </Button>
         </div>
@@ -1111,7 +1256,7 @@ export default function SettingsPage() {
           <p className="text-sm text-muted-foreground mb-4">
             Resetting demo data will clear all transactions, clients, and services created in this session.
           </p>
-          <Button variant="destructive" className="w-full" data-testid="button-reset-demo">
+          <Button variant="destructive" className="w-full" data-testid="button-reset-demo" onClick={handleResetDemo}>
             {t.resetDemoData}
           </Button>
         </div>

@@ -154,7 +154,11 @@ function ProtectedRoutes() {
           <FinancePage />
         </PermissionGuard>
       </Route>
-      <Route path="/settings" component={SettingsPage} />
+      <Route path="/settings">
+        <PermissionGuard permissions={["admin_only"]}>
+          <SettingsPage />
+        </PermissionGuard>
+      </Route>
       <Route path="/sales">
         <PermissionGuard permissions={["view_clients", "edit_clients"]}>
           <SalesPage />

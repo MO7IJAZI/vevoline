@@ -44,7 +44,7 @@ const menuItems = [
   { icon: TrendingUp, path: "/sales", labelKey: "nav.sales", permissions: ["view_clients", "edit_clients"] },
   { icon: Calendar, path: "/calendar", labelKey: "nav.calendar", permissions: [] },
   { icon: DollarSign, path: "/finance", labelKey: "nav.finance", permissions: ["view_finance"] },
-  { icon: Settings, path: "/settings", labelKey: "nav.settings", permissions: [] },
+  { icon: Settings, path: "/settings", labelKey: "nav.settings", permissions: ["admin_only"] },
 ];
 
 export function AppSidebar() {

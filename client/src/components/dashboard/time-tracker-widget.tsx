@@ -108,14 +108,14 @@ export function TimeTrackerWidget() {
   const content = language === "ar" ? t.ar : t.en;
 
   const { data: session, isLoading } = useQuery<WorkSession>({
-    queryKey: ["/api/work-sessions/today", user?.id],
+    queryKey: ["/api/work-sessions/today", user?.employeeId],
     queryFn: async () => {
-      if (!user?.id) return null;
-      const res = await fetch(`/api/work-sessions/today/${user.id}`);
+      if (!user?.employeeId) return null;
+      const res = await fetch(`/api/work-sessions/today/${user.employeeId}`);
       if (!res.ok) throw new Error("Failed to fetch session");
       return res.json();
     },
-    enabled: !!user?.id,
+    enabled: !!user?.employeeId,
     refetchInterval: 30000,
   });
 
@@ -251,7 +251,7 @@ export function TimeTrackerWidget() {
     };
   };
 
-  if (!user) {
+  if (!user || !user.employeeId) {
     return null;
   }
 

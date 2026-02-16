@@ -10,6 +10,7 @@ interface AuthUser {
   department?: string;
   permissions?: string[];
   isClientUser?: boolean;
+  employeeId?: string | null;
 }
 
 interface AuthContextType {

@@ -19,6 +19,7 @@ declare module "express-session" {
     userPermissions: string[];
     isClientUser?: boolean;
     clientId?: string;
+    employeeId?: string;
   }
 }
 
@@ -223,6 +224,7 @@ export function registerAuthRoutes(app: Express) {
       req.session.userName = user.name;
       req.session.userPermissions = permissions;
       req.session.isClientUser = false;
+      req.session.employeeId = user.employeeId || undefined;
       
       res.json({
         id: user.id,
@@ -232,6 +234,7 @@ export function registerAuthRoutes(app: Express) {
         role: user.role,
         department: user.department,
         permissions,
+        employeeId: user.employeeId || null,
       });
     } catch (error) {
       console.error("Login error:", error);
@@ -293,6 +296,7 @@ export function registerAuthRoutes(app: Express) {
         department: user.department,
         permissions,
         isClientUser: false,
+        employeeId: user.employeeId || null,
       });
     } catch (error) {
       console.error("Auth check error:", error);

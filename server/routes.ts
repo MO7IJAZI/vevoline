@@ -26,7 +26,10 @@ import {
 import { z } from "zod";
 // import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import { getExchangeRates, convertCurrency, refreshExchangeRates } from "./exchangeRates";
-import { requireAdmin } from "./auth";
+import { requireAdmin, requireAuth, requirePermission } from "./auth";
+import { db } from "./db";
+import { serviceDeliverables, insertServiceDeliverableSchema } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -248,6 +251,11 @@ export async function registerRoutes(
   app.patch("/api/client-services/:id", async (req, res) => {
     try {
       const validated = insertClientServiceSchema.partial().parse(req.body);
+      
+      // Enforce: only admin can mark service as completed
+      if (validated.status === "completed" && req.session?.userRole !== "admin") {
+        return res.status(403).json({ error: "Only admin can complete a package" });
+      }
       const service = await storage.updateClientService(req.params.id, validated);
       if (!service) {
         return res.status(404).json({ error: "Service not found" });
@@ -272,6 +280,59 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting client service:", error);
       res.status(500).json({ error: "Failed to delete client service" });
+    }
+  });
+
+  // Service deliverables
+  app.get("/api/service-deliverables", requireAuth, async (req, res) => {
+    try {
+      const { serviceId } = req.query as any;
+      if (serviceId) {
+        const rows = await db.select().from(serviceDeliverables).where(eq(serviceDeliverables.serviceId, serviceId as string));
+        return res.json(rows);
+      }
+      const rows = await db.select().from(serviceDeliverables);
+      res.json(rows);
+    } catch (error) {
+      console.error("Error fetching service deliverables:", error);
+      res.status(500).json({ error: "Failed to fetch service deliverables" });
+    }
+  });
+
+  app.patch("/api/client-services/:id/deliverables", requirePermission("edit_work_tracking"), async (req, res) => {
+    try {
+      const serviceId = req.params.id;
+      const items = z.array(
+        insertServiceDeliverableSchema.omit({ serviceId: true })
+      ).parse(req.body);
+
+      // Replace all deliverables for the service
+      await db.delete(serviceDeliverables).where(eq(serviceDeliverables.serviceId, serviceId));
+
+      if (items.length > 0) {
+        const values = items.map(d => ({
+          serviceId,
+          key: d.key,
+          labelAr: d.labelAr,
+          labelEn: d.labelEn,
+          target: d.target,
+          completed: d.completed ?? 0,
+          icon: d.icon ?? null,
+          isBoolean: d.isBoolean ?? false,
+        }));
+        // Insert in batches
+        for (const v of values) {
+          await db.insert(serviceDeliverables).values(v as any);
+        }
+      }
+      const updated = await db.select().from(serviceDeliverables).where(eq(serviceDeliverables.serviceId, serviceId));
+      res.json(updated);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid deliverables data", details: error.errors });
+      }
+      console.error("Error updating deliverables:", error);
+      res.status(500).json({ error: "Failed to update deliverables" });
     }
   });
 
@@ -666,7 +727,7 @@ export async function registerRoutes(
   });
 
   // System Settings API
-  app.get("/api/system-settings", async (req, res) => {
+  app.get("/api/system-settings", requireAdmin, async (req, res) => {
     try {
       const settings = await storage.getSystemSettings();
       res.json(settings?.settings || {});
@@ -676,7 +737,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/system-settings", async (req, res) => {
+  app.post("/api/system-settings", requireAdmin, async (req, res) => {
     try {
       const validated = insertSystemSettingsSchema.partial().parse(req.body);
       const settings = await storage.updateSystemSettings(validated);
@@ -687,6 +748,18 @@ export async function registerRoutes(
       }
       console.error("Error updating system settings:", error);
       res.status(500).json({ error: "Failed to update system settings" });
+    }
+  });
+
+  app.post("/api/reset-demo-data", requireAdmin, async (req, res) => {
+    try {
+      if (process.env.ALLOW_RESET_DEMO !== "true") {
+        return res.status(403).json({ error: "Reset disabled" });
+      }
+      res.json({ success: true, cleared: [] });
+    } catch (error) {
+      console.error("Error resetting demo data:", error);
+      res.status(500).json({ error: "Failed to reset demo data" });
     }
   });
 
@@ -1170,9 +1243,13 @@ export async function registerRoutes(
   // =====================
 
   // Get work sessions with filters
-  app.get("/api/work-sessions", async (req, res) => {
+  app.get("/api/work-sessions", requireAuth, async (req, res) => {
     try {
-      const { employeeId, date, startDate, endDate, status } = req.query;
+      const { employeeId: qEmployeeId, date, startDate, endDate, status } = req.query as any;
+      let employeeId = qEmployeeId as string | undefined;
+      if (req.session.userRole !== "admin") {
+        employeeId = req.session.employeeId;
+      }
       const sessions = await storage.getWorkSessions({
         employeeId: employeeId as string,
         date: date as string,
@@ -1188,8 +1265,11 @@ export async function registerRoutes(
   });
 
   // Get today's session for an employee
-  app.get("/api/work-sessions/today/:employeeId", async (req, res) => {
+  app.get("/api/work-sessions/today/:employeeId", requireAuth, async (req, res) => {
     try {
+      if (req.session.userRole !== "admin" && req.params.employeeId !== req.session.employeeId) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
       const today = new Date().toISOString().split("T")[0];
       let session = await storage.getWorkSessionByEmployeeAndDate(req.params.employeeId, today);
       
@@ -1213,11 +1293,14 @@ export async function registerRoutes(
   });
 
   // Start work
-  app.post("/api/work-sessions/:id/start", async (req, res) => {
+  app.post("/api/work-sessions/:id/start", requireAuth, async (req, res) => {
     try {
       const session = await storage.getWorkSession(req.params.id);
       if (!session) {
         return res.status(404).json({ error: "Session not found" });
+      }
+      if (req.session.userRole !== "admin" && session.employeeId !== req.session.employeeId) {
+        return res.status(403).json({ error: "Forbidden" });
       }
       if (session.status !== "not_started") {
         return res.status(400).json({ error: "Session already started" });
@@ -1240,7 +1323,7 @@ export async function registerRoutes(
   });
 
   // Take break
-  app.post("/api/work-sessions/:id/break", async (req, res) => {
+  app.post("/api/work-sessions/:id/break", requireAuth, async (req, res) => {
     try {
       const { breakType, note } = z.object({
         breakType: z.enum(["short", "long", "lunch", "meeting", "other"]).optional(),
@@ -1250,6 +1333,9 @@ export async function registerRoutes(
       const session = await storage.getWorkSession(req.params.id);
       if (!session) {
         return res.status(404).json({ error: "Session not found" });
+      }
+      if (req.session.userRole !== "admin" && session.employeeId !== req.session.employeeId) {
+        return res.status(403).json({ error: "Forbidden" });
       }
       if (session.status !== "working") {
         return res.status(400).json({ error: "Cannot take break when not working" });
@@ -1292,11 +1378,14 @@ export async function registerRoutes(
   });
 
   // Resume work
-  app.post("/api/work-sessions/:id/resume", async (req, res) => {
+  app.post("/api/work-sessions/:id/resume", requireAuth, async (req, res) => {
     try {
       const session = await storage.getWorkSession(req.params.id);
       if (!session) {
         return res.status(404).json({ error: "Session not found" });
+      }
+      if (req.session.userRole !== "admin" && session.employeeId !== req.session.employeeId) {
+        return res.status(403).json({ error: "Forbidden" });
       }
       if (session.status !== "on_break") {
         return res.status(400).json({ error: "Cannot resume when not on break" });
@@ -1331,11 +1420,14 @@ export async function registerRoutes(
   });
 
   // End day
-  app.post("/api/work-sessions/:id/end", async (req, res) => {
+  app.post("/api/work-sessions/:id/end", requireAuth, async (req, res) => {
     try {
       const session = await storage.getWorkSession(req.params.id);
       if (!session) {
         return res.status(404).json({ error: "Session not found" });
+      }
+      if (req.session.userRole !== "admin" && session.employeeId !== req.session.employeeId) {
+        return res.status(403).json({ error: "Forbidden" });
       }
       if (session.status === "not_started" || session.status === "ended") {
         return res.status(400).json({ error: "Cannot end this session" });
@@ -1368,7 +1460,7 @@ export async function registerRoutes(
   });
 
   // Admin: Reopen a session (allow employee to continue)
-  app.post("/api/work-sessions/:id/reopen", async (req, res) => {
+  app.post("/api/work-sessions/:id/reopen", requireAdmin, async (req, res) => {
     try {
       const session = await storage.getWorkSession(req.params.id);
       if (!session) {

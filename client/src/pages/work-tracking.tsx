@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useData, type ServiceItem, type ConfirmedClient, type ServiceDeliverable } from "@/contexts/DataContext";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -89,6 +90,7 @@ interface ClientWithServices {
 export default function WorkTrackingPage() {
   const { language } = useLanguage();
   const { clients, employees, mainPackages, subPackages, updateService, updateClient, reactivateClient } = useData();
+  const { isAdmin } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [packageFilter, setPackageFilter] = useState<string>("all");
   const [monthFilter, setMonthFilter] = useState<string>("all");
@@ -657,7 +659,7 @@ export default function WorkTrackingPage() {
               {content.reactivate}
             </Button>
           </div>
-        ) : (
+        ) : isAdmin ? (
           <Button
             size="sm"
             variant="outline"
@@ -668,7 +670,7 @@ export default function WorkTrackingPage() {
             <CheckCircle2 className="h-4 w-4 me-2" />
             {content.markCompleted}
           </Button>
-        )}
+        ) : null}
       </div>
     );
   };

@@ -1445,6 +1445,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
     queryKey: ["/api/client-services"],
   });
 
+  const { data: serviceDeliverablesData } = useQuery<any[]>({
+    queryKey: ["/api/service-deliverables"],
+  });
+
   const { data: mainPackagesData } = useQuery<MainPackage[]>({
     queryKey: ["/api/main-packages"],
   });
@@ -1488,6 +1492,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     
     // Safety check for mainPackagesData
     const safeMainPackages = Array.isArray(mainPackagesData) ? mainPackagesData : [];
+    const safeDeliverables = Array.isArray(serviceDeliverablesData) ? serviceDeliverablesData : [];
 
     return clientsData.map(client => {
       const services = safeClientServices.filter(s => s.clientId === client.id).map(s => {
@@ -1510,7 +1515,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
            else if (name.includes("app")) serviceType = "app";
         }
 
-        return {
+        const serviceObj = {
           id: s.id,
           serviceType,
           serviceName: s.serviceName,
@@ -1524,7 +1529,21 @@ export function DataProvider({ children }: { children: ReactNode }) {
           mainPackageId: s.mainPackageId,
           subPackageId: s.subPackageId,
           completedDate: s.completedAt ? new Date(s.completedAt).toISOString().split('T')[0] : undefined,
-        };
+        } as ServiceItem;
+
+        // Attach persisted deliverables if present
+        const dItems = safeDeliverables.filter(d => d.serviceId === s.id);
+        if (dItems.length > 0) {
+          serviceObj.deliverables = dItems.map((d: any) => ({
+            key: d.key,
+            label: d.labelAr || d.labelEn || d.key,
+            labelEn: d.labelEn || d.labelAr || d.key,
+            target: Number(d.target) || 0,
+            completed: Number(d.completed) || 0,
+            isBoolean: !!d.isBoolean,
+          })) as ServiceDeliverable[];
+        }
+        return serviceObj;
       }) || [];
 
       return {
@@ -1538,7 +1557,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         completedDate: client.completedDate ? new Date(client.completedDate).toISOString().split('T')[0] : undefined,
       } as ConfirmedClient;
     });
-  }, [clientsData, clientServicesData, mainPackagesData]);
+  }, [clientsData, clientServicesData, mainPackagesData, serviceDeliverablesData]);
 
   // Use local state for leads if API is loading, or rely on API data
   const leads = Array.isArray(leadsData) ? leadsData : initialLeads;
@@ -1739,11 +1758,28 @@ export function DataProvider({ children }: { children: ReactNode }) {
       if (updates.notes) serviceUpdates.notes = updates.notes;
       if (updates.completedDate) serviceUpdates.completedAt = updates.completedDate ? new Date(updates.completedDate) : null;
 
-      await apiRequest("PATCH", `/api/client-services/${id}`, serviceUpdates);
+      // Update main service fields
+      if (Object.keys(serviceUpdates).length > 0) {
+        await apiRequest("PATCH", `/api/client-services/${id}`, serviceUpdates);
+      }
+
+      // Persist deliverables if provided
+      if (updates.deliverables) {
+        const payload = updates.deliverables.map(d => ({
+          key: d.key,
+          labelAr: d.labelEn && d.label && d.label !== d.labelEn ? d.label : d.label, // best-effort
+          labelEn: d.labelEn || d.label,
+          target: d.target,
+          completed: d.completed,
+          isBoolean: !!d.isBoolean,
+        }));
+        await apiRequest("PATCH", `/api/client-services/${id}/deliverables`, payload);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/client-services"] });
       queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/service-deliverables"] });
     },
   });
 
