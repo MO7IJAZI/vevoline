@@ -26,7 +26,7 @@ import {
 import { z } from "zod";
 // import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import { getExchangeRates, convertCurrency, refreshExchangeRates } from "./exchangeRates";
-import { requireAdmin, requireAuth, requirePermission } from "./auth";
+import { requireAdmin, requireAuth, requirePermission, hashPassword } from "./auth";
 import { db } from "./db";
 import { serviceDeliverables, insertServiceDeliverableSchema } from "@shared/schema";
 import { eq } from "drizzle-orm";
@@ -756,8 +756,18 @@ export async function registerRoutes(
       if (process.env.ALLOW_RESET_DEMO !== "true") {
         return res.status(403).json({ error: "Reset disabled" });
       }
-      res.json({ success: true, cleared: [] });
+      const schema = z.object({
+        adminEmail: z.string().email(),
+        adminPassword: z.string().min(8),
+      });
+      const { adminEmail, adminPassword } = schema.parse(req.body);
+      const passwordHash = await hashPassword(adminPassword);
+      await storage.resetDatabase(adminEmail, passwordHash);
+      res.json({ success: true });
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid input", details: error.errors });
+      }
       console.error("Error resetting demo data:", error);
       res.status(500).json({ error: "Failed to reset demo data" });
     }

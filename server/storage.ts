@@ -18,12 +18,14 @@ import {
   transactions, clientPayments, payrollPayments, employeeSalaries,
   calendarEvents, notifications, workSessions, clients, leads, clientServices,
   mainPackages, subPackages, invoices, employees, systemSettings,
-  users, goals, serviceDeliverables, workActivityLogs, serviceReports, clientUsers
+  users, goals, serviceDeliverables, workActivityLogs, serviceReports, clientUsers,
+  invitations, passwordResets, session, exchangeRates
 } from "@shared/schema";
 import { db } from "./db";
 import { randomUUID } from "crypto";
 import { eq, and, desc, or, isNull, sql, inArray } from "drizzle-orm";
 import { convertCurrency } from "./exchangeRates";
+import { roleDefaultPermissions } from "./auth";
 
 // Filter types
 interface TransactionFilters {
@@ -180,6 +182,8 @@ export interface IStorage {
   // System Settings
   getSystemSettings(): Promise<SystemSettings | undefined>;
   updateSystemSettings(settings: any): Promise<SystemSettings>;
+
+  resetDatabase(adminEmail: string, adminPasswordHash: string): Promise<void>;
 
   // Leads
   getLeads(): Promise<Lead[]>;
@@ -1280,6 +1284,42 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async resetDatabase(adminEmail: string, adminPasswordHash: string): Promise<void> {
+    await db.transaction(async (tx) => {
+      await tx.delete(workActivityLogs);
+      await tx.delete(serviceReports);
+      await tx.delete(serviceDeliverables);
+      await tx.delete(clientPayments);
+      await tx.delete(transactions);
+      await tx.delete(invoices);
+      await tx.delete(clientServices);
+      await tx.delete(workSessions);
+      await tx.delete(calendarEvents);
+      await tx.delete(goals);
+      await tx.delete(payrollPayments);
+      await tx.delete(employeeSalaries);
+      await tx.delete(employees);
+      await tx.delete(leads);
+      await tx.delete(clients);
+      await tx.delete(notifications);
+      await tx.delete(clientUsers);
+      await tx.delete(invitations);
+      await tx.delete(passwordResets);
+      await tx.delete(session);
+      await tx.delete(exchangeRates);
+      await tx.delete(mainPackages);
+      await tx.delete(subPackages);
+      await tx.delete(users);
+      await tx.insert(users).values({
+        email: adminEmail,
+        password: adminPasswordHash,
+        name: "Admin User",
+        role: "admin",
+        permissions: roleDefaultPermissions.admin,
+        isActive: true,
+      });
+    });
+  }
   // ========== LEADS METHODS ==========
 
   async getLeads(): Promise<Lead[]> {

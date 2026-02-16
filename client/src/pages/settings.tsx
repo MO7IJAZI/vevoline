@@ -262,7 +262,11 @@ export default function SettingsPage() {
 
   const handleResetDemo = async () => {
     try {
-      const res = await apiRequest("POST", "/api/reset-demo-data", {});
+      const email = window.prompt(language === "ar" ? "أدخل ايميل الأدمن الجديد" : "Enter new admin email");
+      if (!email) return;
+      const password = window.prompt(language === "ar" ? "أدخل كلمة مرور الأدمن الجديدة" : "Enter new admin password");
+      if (!password) return;
+      const res = await apiRequest("POST", "/api/reset-demo-data", { adminEmail: email, adminPassword: password });
       if (res.ok) {
         toast({ title: language === "ar" ? "تمت العملية" : "Done", description: language === "ar" ? "تم تنفيذ إعادة التعيين" : "Reset executed" });
       } else {
