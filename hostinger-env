@@ -5,7 +5,7 @@
 # 1. إعدادات قاعدة البيانات (PostgreSQL عبر Neon أو أي مزود مُدار)
 # الصيغة: postgresql://USER:PASSWORD@HOST:PORT/DBNAME
 # مثال Neon: postgresql://<user>:<password>@<project>.neon.tech/<db>?sslmode=require
-; DATABASE_URL="postgresql://neondb_owner:npg_1vEc2qARzaeF@ep-tiny-dream-aihq9oyy-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require"
+# DATABASE_URL="postgresql://neondb_owner:npg_1vEc2qARzaeF@ep-tiny-dream-aihq9oyy-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require"
 DB_DIALECT=mysql
 SESSION_STORE=mysql
 MYSQL_HOST=127.0.0.1

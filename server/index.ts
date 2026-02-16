@@ -627,11 +627,23 @@ app.use((req, res, next) => {
       }
     }
 
-    const PORT = Number(process.env.PORT) || 5000;
-    
-    httpServer.listen(PORT, "0.0.0.0", () => {
-      fileLog(`serving on port ${PORT}`);
-    });
+    const basePort = Number(process.env.PORT) || 5000;
+    let currentPort = basePort;
+    const tryListen = () => {
+      httpServer.once("error", (err: any) => {
+        if (err && err.code === "EADDRINUSE") {
+          currentPort += 1;
+          tryListen();
+        } else {
+          fileLog(`Server listen error: ${err?.message || err}`);
+          process.exit(1);
+        }
+      });
+      httpServer.listen(currentPort, "0.0.0.0", () => {
+        fileLog(`serving on port ${currentPort}`);
+      });
+    };
+    tryListen();
   } catch (err: any) {
     fileLog(`CRITICAL ERROR DURING STARTUP: ${err?.message || err}`);
     process.exit(1);

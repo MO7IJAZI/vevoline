@@ -216,3 +216,18 @@
 2026-02-16T01:22:57.304Z - Setting up Vite development server (Development Mode)
 2026-02-16T01:22:58.382Z - Vite setup complete
 2026-02-16T01:22:58.385Z - serving on port 3000
+2026-02-16T01:25:40.664Z - --- SERVER STARTUP SEQUENCE START ---
+2026-02-16T01:25:40.668Z - Express and HTTP server initialized
+2026-02-16T01:25:40.670Z - Environment: development
+2026-02-16T01:25:40.671Z - Starting initialization sequence...
+2026-02-16T01:25:40.672Z - Testing database connection...
+2026-02-16T01:25:40.701Z - MySQL connection successful
+2026-02-16T01:25:40.817Z - Session store configured: MySQL
+2026-02-16T01:25:40.854Z - Ensured MySQL tables exist
+2026-02-16T01:25:40.858Z - Seeding admin user...
+2026-02-16T01:25:41.283Z - Admin user seeding checked
+2026-02-16T01:25:41.283Z - Registering routes...
+2026-02-16T01:25:41.287Z - Routes registered
+2026-02-16T01:25:41.287Z - Setting up Vite development server (Development Mode)
+2026-02-16T01:25:42.357Z - Vite setup complete
+2026-02-16T01:25:42.360Z - serving on port 3000

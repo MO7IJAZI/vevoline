@@ -1,6 +1,7 @@
 
 import "dotenv/config";
 import mysql from "mysql2/promise";
+import type { RowDataPacket } from "mysql2/promise";
 
 async function reset() {
   console.log("⚠️  Dropping all tables in MariaDB/MySQL...");
@@ -15,11 +16,12 @@ async function reset() {
   });
 
   await connection.query("SET FOREIGN_KEY_CHECKS = 0");
-  const [rows] = await connection.query<{ TABLE_NAME: string }[]>(
+  interface TableNameRow extends RowDataPacket { TABLE_NAME: string }
+  const [rows] = await connection.query<TableNameRow[]>(
     "SELECT TABLE_NAME FROM information_schema.tables WHERE table_schema = DATABASE()"
   );
-  for (const row of rows) {
-    const tableName = row.TABLE_NAME;
+  for (const row of rows as TableNameRow[]) {
+    const tableName = (row as any).TABLE_NAME;
     if (!tableName) continue;
     console.log(`Dropping table ${tableName}...`);
     await connection.query(`DROP TABLE IF EXISTS \`${tableName}\``);

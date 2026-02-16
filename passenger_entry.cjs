@@ -11,6 +11,10 @@ function log(msg) {
 
 log("PASSENGER ENTRY INIT");
 
+// Ensure production defaults in hosting environments that don't use npm start
+process.env.NODE_ENV = process.env.NODE_ENV || "production";
+process.env.PORT = process.env.PORT || "3000";
+
 const appPath = path.join(__dirname, "dist", "index.cjs");
 if (!fs.existsSync(appPath)) {
   log(`Missing build file: ${appPath}`);
