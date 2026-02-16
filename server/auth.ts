@@ -208,11 +208,14 @@ export function registerAuthRoutes(app: Express) {
         return res.status(401).json({ error: "ACCOUNT_DEACTIVATED" });
       }
       
-      const isValid = await comparePassword(password, user.password);
-      
-      if (!isValid) {
+      let isValid = false;
+      try {
+        isValid = await comparePassword(password, user.password);
+      } catch (cmpErr: any) {
+        console.error("Password compare error:", cmpErr?.message || cmpErr);
         return res.status(401).json({ error: "WRONG_PASSWORD" });
       }
+      if (!isValid) return res.status(401).json({ error: "WRONG_PASSWORD" });
       
       await db.update(users).set({ lastLogin: new Date() }).where(eq(users.id, user.id));
       
