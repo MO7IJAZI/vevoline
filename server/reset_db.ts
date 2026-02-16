@@ -4,27 +4,22 @@ import { db } from "./db";
 import { sql } from "drizzle-orm";
 
 async function reset() {
-  console.log("⚠️  Dropping all tables...");
-  
-  // Disable foreign key checks
-  await db.execute(sql`SET FOREIGN_KEY_CHECKS = 0`);
+  console.log("⚠️  Dropping all tables in public schema (PostgreSQL)...");
 
-  const [rows] = await db.execute(sql`
-    SELECT table_name 
-    FROM information_schema.tables 
-    WHERE table_schema = DATABASE()
-  `);
+  // Get all table names from public schema
+  const result = await db.execute(
+    sql`SELECT tablename FROM pg_tables WHERE schemaname = 'public'`
+  );
 
-  // @ts-ignore
+  const rows = (result as any).rows as Array<{ tablename: string }>;
   for (const row of rows) {
-    const tableName = row.TABLE_NAME || row.table_name;
-    console.log(`Dropping table ${tableName}...`);
-    await db.execute(sql.raw(`DROP TABLE IF EXISTS \`${tableName}\``));
+    const tableName = row.tablename;
+    if (!tableName) continue;
+    console.log(`Dropping table "${tableName}"...`);
+    // Cascade to drop dependent objects
+    await db.execute(sql.raw(`DROP TABLE IF EXISTS "${tableName}" CASCADE;`));
   }
 
-  // Re-enable foreign key checks
-  await db.execute(sql`SET FOREIGN_KEY_CHECKS = 1`);
-  
   console.log("✅ All tables dropped.");
   process.exit(0);
 }
